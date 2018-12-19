@@ -5,6 +5,11 @@ public class Utilisateur {
     String username;
     String password;
 
+    public Utilisateur (String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
     public String getId() {
         return id;
     }
