@@ -94,9 +94,13 @@ public class UserActivity extends AppCompatActivity {
                 String username = editTextUsername.getText().toString();
                 String password = editTextPassword.getText().toString();
 
+                final Utilisateur user = new Utilisateur(username, password);
+
+                RequestBody requestBody = RequestBody.create(JSON, new Gson().toJson(user));
+
                 final Request request = new Request.Builder()
                         .url("http://51.15.207.57:8080/utilisateurs")
-                        .post(RequestBody.create(JSON,"{username: "+username+","+"password: "+password+"}"))
+                        .post(requestBody)
                         .build();
                 client.newCall(request).enqueue(new Callback() {
                     @Override
