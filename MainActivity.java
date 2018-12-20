@@ -1,11 +1,13 @@
 package com.melmo.androidchat;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
@@ -17,7 +19,7 @@ import com.melmo.androidchat.model.Utilisateur;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -35,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final EditText editTextMessageFilled = findViewById(R.id.editText);
+        final EditText editTextMessageField = findViewById(R.id.editText);
         ImageButton buttonSend = findViewById(R.id.imageButton);
 
         //Affichage de notre liste
@@ -48,19 +50,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //TODO GET MESSAGE FILLED
-                String messageFilled = editTextMessageFilled.getText().toString();
+                String messageField = editTextMessageField.getText().toString();
                 String idUser = getSharedPreferences("user",MODE_PRIVATE).getString("id","");
+
+                //START CHANGE
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.DATE, 1);
                 SimpleDateFormat parser= new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                String formatted = parser.format(cal.getTime());
                 String creationDate="Date inconnue";
                 try {
-                    creationDate = parser.parse(new Date().toString()).toString();
+                    creationDate = parser.parse(formatted).toString();
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
 
+
+
                 //TODO SEND TO API
-                Utilisateur userToSend = new Utilisateur(idUser, "","");
-                Message messageToSend = new Message(messageFilled, userToSend, creationDate);
+                Utilisateur userToSend = new Utilisateur(idUser);
+                Message messageToSend = new Message(messageField, userToSend, creationDate);
                 String jsonMessage = new Gson().toJson(messageToSend);
                 final Request request = new Request.Builder()
                         .url("http://51.15.207.57:8080/messages")
@@ -76,7 +85,19 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
-                        Log.d("MainActivity", "onResponse: "+response.body().toString());
+                        Log.d("MainActivity", "onResponse: "+response.body());
+
+                        //todo add message adapter
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                editTextMessageField.setText("");
+                                hideKeyboard(MainActivity.this);
+                            }
+                        });
+
+
+
                     }
                 });
 
@@ -84,6 +105,17 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 }

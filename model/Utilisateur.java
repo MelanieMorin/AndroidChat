@@ -14,6 +14,10 @@ public class Utilisateur {
         this.password = password;
     }
 
+    public Utilisateur(String id) {
+        this.id = id;
+    }
+
     public String getId() {
         return id;
     }

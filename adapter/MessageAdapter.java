@@ -72,7 +72,7 @@ public class MessageAdapter extends RecyclerView.Adapter<com.melmo.androidchat.a
     @Override
     public void onBindViewHolder(@NonNull com.melmo.androidchat.adapter.MessageViewHolder holder, int position) {
         Message messsageToShow = arrayListMessage.get(position);
-        holder.textViewDate.setText(messsageToShow.getCreationdate());
+        holder.textViewDate.setText(formatDate(messsageToShow.getCreationdate()));
         holder.textViewMessage.setText(messsageToShow.getMessage());
         holder.textViewUsername.setText(messsageToShow.getUtilisateur().getUsername());
 
@@ -88,7 +88,7 @@ public class MessageAdapter extends RecyclerView.Adapter<com.melmo.androidchat.a
         SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         try {
             Date creationDate = parser.parse(dateNonFormatee);
-            retourDate = new SimpleDateFormat("E:d:M à  HH:mm").format(creationDate).toString();
+            retourDate = new SimpleDateFormat("E:d:M à kk:mm").format(creationDate).toString();
 
         } catch (ParseException e) {
 
