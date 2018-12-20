@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 import com.google.gson.Gson;
 import com.melmo.androidchat.adapter.MessageAdapter;
 import com.melmo.androidchat.model.Message;
+import com.melmo.androidchat.model.Utilisateur;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -58,10 +59,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 //TODO SEND TO API
-                Message messageToSend = new Message(messageFilled, idUser, creationDate);
+                Utilisateur userToSend = new Utilisateur(idUser, "","");
+                Message messageToSend = new Message(messageFilled, userToSend, creationDate);
                 String jsonMessage = new Gson().toJson(messageToSend);
                 final Request request = new Request.Builder()
-                        .url("http://51.15.207.57/messages")
+                        .url("http://51.15.207.57:8080/messages")
                         .post(RequestBody.create(UserActivity.JSON, jsonMessage))
                         .build();
 

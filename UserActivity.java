@@ -26,7 +26,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class UserActivity extends AppCompatActivity {
-    OkHttpClient client;
+    OkHttpClient clientWeb;
     public static final MediaType JSON
             = MediaType.parse("application/json; charset=utf-8");
 
@@ -35,96 +35,99 @@ public class UserActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user);
 
-        final EditText editTextUsername = findViewById(R.id.editTextUserName);
+        //Affectation des vues
+        final EditText editTextUsername = findViewById(R.id.editTextUsername);
         final EditText editTextPassword = findViewById(R.id.editTextPassword);
 
-        Button buttonInscription = findViewById(R.id.buttonInscription);
         Button buttonConnexion = findViewById(R.id.buttonConnexion);
-        client = new OkHttpClient();
+        Button buttonInscription = findViewById(R.id.buttonInscription);
+
+
+        clientWeb = new OkHttpClient();
+
+        //GESTION Connexion
         buttonConnexion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 final Request request = new Request.Builder()
                         .url("http://51.15.207.57:8080/utilisateurs")
                         .build();
-
-                client.newCall(request).enqueue(new Callback() {
+                clientWeb.newCall(request).enqueue(new Callback() {
                     @Override
-                    public void onFailure(Call call, IOException e) {
-
-                    }
+                    public void onFailure(Call call, IOException e) {}
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         String jsonUsers = response.body().string();
                         Gson gson = new Gson();
-                        List<Utilisateur> list = gson.fromJson(jsonUsers,new TypeToken<List<Utilisateur>>(){}.getType());
+                        List<Utilisateur> list = gson.fromJson(
+                                jsonUsers,
+                                new TypeToken<List<Utilisateur>>(){}.getType());
 
                         String userNameFilled = editTextUsername.getText().toString();
                         String passwordFilled = editTextPassword.getText().toString();
-                        for (Utilisateur u : list) {
+                        for(Utilisateur u : list){
                             Log.d("User", "onResponse: "+ u.getUsername() + ":" +u.getPassword());
                             if (userNameFilled.equals(u.getUsername()) &&
                                     passwordFilled.equals(u.getPassword())){
                                 SharedPreferences sp = getSharedPreferences("user",MODE_PRIVATE);
                                 sp.edit().putString("id",u.getId()).apply();
 
-                                Intent intenToMainActivity = new Intent(UserActivity.this,MainActivity.class);
-                                startActivity(intenToMainActivity);
+                                Intent intentToMainActivity = new Intent(UserActivity.this,MainActivity.class);
+                                startActivity(intentToMainActivity);
                                 finish();
                             }
-
                         }
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(UserActivity.this, "Identifiant ou MDP incorrect", Toast.LENGTH_LONG).show();
+                                Toast.makeText(UserActivity.this, "Identifiant ou mdp incorrect", Toast.LENGTH_LONG).show();
 
                             }
                         });
                     }
                 });
-
             }
         });
 
         buttonInscription.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String username = editTextUsername.getText().toString();
+                final String username = editTextUsername.getText().toString();
                 String password = editTextPassword.getText().toString();
 
-                final Utilisateur user = new Utilisateur(username, password);
 
-                RequestBody requestBody = RequestBody.create(JSON, new Gson().toJson(user));
-
+                String json = new Gson().toJson(new Utilisateur(null,username,password));
+                RequestBody requestBody = RequestBody.create(JSON,json);
                 final Request request = new Request.Builder()
                         .url("http://51.15.207.57:8080/utilisateurs")
                         .post(requestBody)
                         .build();
-                client.newCall(request).enqueue(new Callback() {
+
+                clientWeb.newCall(request).enqueue(new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
-
+                        e.printStackTrace();
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         String jsonUser = response.body().string();
                         Gson gson = new Gson();
-                        final Utilisateur userInscrit = gson.fromJson(jsonUser,new TypeToken<Utilisateur>(){}.getType());
+                        final Utilisateur userInscrit = gson.fromJson(
+                                jsonUser,
+                                new TypeToken<Utilisateur>(){}.getType());
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(UserActivity.this, "Vous êtes bien inscrit : "+userInscrit.getId(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(UserActivity.this, "Vous êtes bien inscrit : "+userInscrit.getId(), Toast.LENGTH_LONG).show();
                             }
                         });
                     }
                 });
-
             }
         });
 
-        String username = editTextUsername.getText().toString();
+
     }
 }
