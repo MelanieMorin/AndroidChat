@@ -36,30 +36,7 @@ public class MessageAdapter extends RecyclerView.Adapter<com.melmo.androidchat.a
         super();
         arrayListMessage = new ArrayList<>();
 
-        final Request request = new Request.Builder()
-                .url("http://51.15.207.57:8080/messages")
-                .build();
-        OkHttpClient clientWeb = new OkHttpClient();
-        clientWeb.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {}
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String jsonMessages = response.body().string();
-                Gson gson = new Gson();
-                arrayListMessage = gson.fromJson(
-                        jsonMessages,
-                        new TypeToken<List<Message>>(){}.getType());
-
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        notifyDataSetChanged();
-                    }
-                });
-            }
-        });
+        reloadMessages(activity);
     }
 
     @NonNull
@@ -75,7 +52,6 @@ public class MessageAdapter extends RecyclerView.Adapter<com.melmo.androidchat.a
         holder.textViewDate.setText(formatDate(messsageToShow.getCreationdate()));
         holder.textViewMessage.setText(messsageToShow.getMessage());
         holder.textViewUsername.setText(messsageToShow.getUtilisateur().getUsername());
-
     }
 
     @Override
@@ -98,5 +74,37 @@ public class MessageAdapter extends RecyclerView.Adapter<com.melmo.androidchat.a
         }
         return retourDate;
 
+    }
+
+    public void add(Message messageToDisplay) {
+        arrayListMessage.add(messageToDisplay);
+        notifyDataSetChanged();
+    }
+
+    public void reloadMessages(final Activity activity) {
+        final Request request = new Request.Builder()
+                .url("http://51.15.207.57:8080/messages?_limit=100000")
+                .build();
+        OkHttpClient clientWeb = new OkHttpClient();
+        clientWeb.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {}
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String jsonMessages = response.body().string();
+                Gson gson = new Gson();
+                arrayListMessage = gson.fromJson(
+                        jsonMessages,
+                        new TypeToken<List<Message>>(){}.getType());
+
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        notifyDataSetChanged();
+                    }
+                });
+            }
+        });
     }
 }

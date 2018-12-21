@@ -6,12 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.melmo.androidchat.adapter.MessageAdapter;
 import com.melmo.androidchat.model.Message;
 import com.melmo.androidchat.model.Utilisateur;
@@ -30,8 +33,11 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    OkHttpClient client;    @Override
+    OkHttpClient client;
+    MessageAdapter messageAdapter;
+    RecyclerView recyclerViewMessage;
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
@@ -39,11 +45,12 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText editTextMessageField = findViewById(R.id.editText);
         ImageButton buttonSend = findViewById(R.id.imageButton);
+        messageAdapter = new MessageAdapter(this);
 
         //Affichage de notre liste
-        RecyclerView recyclerViewMessage = findViewById(R.id.recyclerView);
+        recyclerViewMessage = findViewById(R.id.recyclerView);
         recyclerViewMessage.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false));
-        recyclerViewMessage.setAdapter(new MessageAdapter(this));
+        recyclerViewMessage.setAdapter(messageAdapter);
 
         buttonSend.setOnClickListener(new View.OnClickListener(){
 
@@ -66,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
-
                 //TODO SEND TO API
                 Utilisateur userToSend = new Utilisateur(idUser);
                 Message messageToSend = new Message(messageField, userToSend, creationDate);
@@ -86,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
                         Log.d("MainActivity", "onResponse: "+response.body());
+                        final Message messageToDisplay = new Gson().fromJson(
+                                response.body().string(),
+                                new TypeToken<Message>(){}.getType()
+                        );
 
                         //todo add message adapter
                         runOnUiThread(new Runnable() {
@@ -93,16 +103,14 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 editTextMessageField.setText("");
                                 hideKeyboard(MainActivity.this);
+                                messageAdapter.add(messageToDisplay);
+                                recyclerViewMessage.scrollToPosition(messageAdapter.getItemCount()-1);
                             }
                         });
 
 
-
                     }
                 });
-
-                //TODO ADD MESSAGE TO ADAPTER
-
             }
         });
     }
@@ -117,5 +125,21 @@ public class MainActivity extends AppCompatActivity {
         }
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.menuReload) {
+            messageAdapter.reloadMessages(MainActivity.this);
+            recyclerViewMessage.scrollToPosition(messageAdapter.getItemCount()-1);
+        }
+        return true;
+    }
+
 
 }
