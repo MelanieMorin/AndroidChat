@@ -1,6 +1,7 @@
 package com.melmo.androidchat;
 
 import android.app.Activity;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     OkHttpClient client;
     MessageAdapter messageAdapter;
     RecyclerView recyclerViewMessage;
+    ConnectivityChangeReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,10 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText editTextMessageField = findViewById(R.id.editText);
         ImageButton buttonSend = findViewById(R.id.imageButton);
+
+        receiver = new ConnectivityChangeReceiver();
+        registerReceiver(receiver, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+
         messageAdapter = new MessageAdapter(this);
 
         //Affichage de notre liste
